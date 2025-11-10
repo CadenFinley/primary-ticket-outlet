@@ -14,7 +14,7 @@ const mockLogin = async (
     managedVenueIds?: string[];
   },
 ) => {
-  await page.goto('/');
+  await page.goto('/login');
 
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Display Name').fill(displayName);

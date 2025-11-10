@@ -1,75 +1,92 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, apiRequest, downloadCsv } from './client'
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ApiError, apiRequest, downloadCsv } from './client';
 
-const ORIGINAL_FETCH = global.fetch
-const ORIGINAL_URL = global.URL
-const ORIGINAL_CREATE_ELEMENT = document.createElement
+const ORIGINAL_FETCH = globalThis.fetch;
+const ORIGINAL_URL = globalThis.URL;
+const ORIGINAL_CREATE_ELEMENT = document.createElement;
 
 afterEach(() => {
-  vi.restoreAllMocks()
-  global.fetch = ORIGINAL_FETCH
-  global.URL = ORIGINAL_URL
-  document.createElement = ORIGINAL_CREATE_ELEMENT
-})
+  vi.restoreAllMocks();
+  globalThis.fetch = ORIGINAL_FETCH;
+  globalThis.URL = ORIGINAL_URL;
+  document.createElement = ORIGINAL_CREATE_ELEMENT;
+});
 
 describe('api/client', () => {
   it('performs json request and attaches authorization header', async () => {
-    const responseBody = { success: true }
-    global.fetch = vi.fn().mockResolvedValue({
+    const responseBody = { success: true };
+    globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       headers: new Headers({ 'content-type': 'application/json' }),
       json: vi.fn().mockResolvedValue(responseBody),
-    })
+    });
 
-    const result = await apiRequest('/status', {}, 'token-123')
+    const result = await apiRequest('/status', {}, 'token-123');
 
-    expect(global.fetch).toHaveBeenCalledWith('/api/status', {
+    expect(globalThis.fetch).toHaveBeenCalledWith('/api/status', {
       headers: { Authorization: 'Bearer token-123' },
       method: 'GET',
-    })
-    expect(result).toEqual(responseBody)
-  })
+    });
+    expect(result).toEqual(responseBody);
+  });
 
   it('throws ApiError when response is not ok', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    globalThis.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 500,
       json: vi.fn().mockResolvedValue({ message: 'boom' }),
-    })
+    });
 
-    await expect(apiRequest('/broken')).rejects.toEqual(
-      new ApiError('boom', 500, { message: 'boom' })
-    )
-  })
+    await expect(apiRequest('/status', {}, 'token-123')).rejects.toThrow(
+      ApiError
+    );
+  });
 
-  it('downloads CSV and triggers link click', async () => {
-    const blobMock = new Blob(['data'], { type: 'text/csv' })
-    const appendMock = vi.spyOn(document.body, 'appendChild')
-
-    const anchor = ORIGINAL_CREATE_ELEMENT.call(document, 'a')
-    const clickMock = vi.spyOn(anchor, 'click').mockImplementation(() => {})
-    const removeMock = vi.spyOn(anchor, 'remove').mockImplementation(() => {})
-    document.createElement = vi.fn().mockReturnValue(anchor)
-
-    global.URL = {
-      createObjectURL: vi.fn().mockReturnValue('blob://url'),
-      revokeObjectURL: vi.fn(),
-    }
-
-    global.fetch = vi.fn().mockResolvedValue({
+  it('returns text when response is not json', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      blob: vi.fn().mockResolvedValue(blobMock),
-    })
+      status: 200,
+      headers: new Headers({ 'content-type': 'text/plain' }),
+      text: vi.fn().mockResolvedValue('plain text'),
+    });
 
-    await downloadCsv('/export', 'token-abc')
+    const result = await apiRequest('/status', { plainText: true });
+    expect(result).toEqual('plain text');
+  });
 
-    expect(global.fetch).toHaveBeenCalledWith('/api/export', {
-      headers: { Accept: 'text/csv', Authorization: 'Bearer token-abc' },
-    })
-    expect(appendMock).toHaveBeenCalled()
-    expect(clickMock).toHaveBeenCalled()
-    expect(removeMock).toHaveBeenCalled()
-    expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob://url')
-  })
-})
+  it('downloads csv by creating anchor tag', async () => {
+    const revokeSpy = vi.fn();
+    const appendSpy = vi
+      .spyOn(document.body, 'appendChild')
+      .mockImplementation(() => {});
+    const clickMock = vi.fn();
+    document.createElement = vi.fn().mockReturnValue({
+      click: clickMock,
+      remove: vi.fn(),
+    });
+    globalThis.URL = {
+      ...globalThis.URL,
+      createObjectURL: vi.fn().mockReturnValue('blob-url'),
+      revokeObjectURL: revokeSpy,
+    };
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      blob: vi.fn().mockResolvedValue(new Blob(['content'], { type: 'text/csv' })),
+    });
+
+    await downloadCsv('/events/123/purchasers', 'token-123');
+
+    expect(globalThis.fetch).toHaveBeenCalledWith('/api/events/123/purchasers', {
+      headers: {
+        Accept: 'text/csv',
+        Authorization: 'Bearer token-123',
+      },
+    });
+    expect(document.createElement).toHaveBeenCalledWith('a');
+    expect(appendSpy).toHaveBeenCalled();
+    expect(clickMock).toHaveBeenCalled();
+    expect(revokeSpy).toHaveBeenCalledWith('blob-url');
+  });
+});

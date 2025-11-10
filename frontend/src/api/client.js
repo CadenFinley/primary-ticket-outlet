@@ -74,8 +74,7 @@ export async function downloadCsv(path, token) {
 async function safeParseJson(response) {
   try {
     return await response.json();
-  } catch (_) {
+  } catch {
     return null;
   }
 }
-

@@ -26,7 +26,7 @@ This monorepo hosts the Primary Ticket Outlet MVP: a Spring Boot backend, a Vite
 | Component | Stack | Responsibilities |
 |-----------|-------|------------------|
 | Backend | Spring Boot 3 · Java 25 (Temurin) · PostgreSQL · Flyway | REST API with controller/service/repository layering, JWT-like token verification, role & venue management, ticket purchase orchestration |
-| Frontend | React 19 · Vite · MUI · React Router | SPA with mock SSO login, role switching (attendee/manager/admin), event browsing, ticket purchasing, administration dashboards |
+| Frontend | React 19 · React Router 7 · Vite · MUI | SPA with mock SSO login, role-based dashboards (attendee/manager/admin), event browsing, ticket purchasing, administration dashboards |
 | Infra | Docker Compose · nginx proxy · Node payment stub | Local orchestration of Postgres, payment microservice mock, backend, and compiled frontend |
 
 Backend highlights:
@@ -36,9 +36,10 @@ Backend highlights:
 - Payment integration talks to the local stub (Node/Express) via `PAYMENT_BASE_URL`.
 
 Frontend highlights:
-- Auth context stores tokens and fetches `/api/me` for consistent role/venue information.
-- Views for attendee, manager, and admin ensure role-specific UX.
-- Playwright tests cover end-to-end login and role-based surface checks.
+- Feature-oriented folders (`features/auth`, `features/dashboard`, `features/navigation`) encapsulate UI, hooks, and tests.
+- `useAuthSession`, `useEvents`, and `useManagerVenues` custom hooks separate API/data logic from presentational components.
+- React Router drives navigation between `/login`, `/`, `/manager`, and `/admin`, with `DashboardLayout` providing the shared shell and role switcher.
+- Playwright tests cover mock login flows and role-based dashboards.
 
 ---
 
@@ -60,7 +61,14 @@ project/
 │   ├── build.gradle          # Backend build config
 │   └── Dockerfile            # Multi-stage build (Temurin 25)
 ├── frontend/                 # Vite/React SPA
-│   ├── src/                  # Components, contexts, views, API client
+│   ├── src/
+│   │   ├── app/              # App router & providers
+│   │   ├── api/              # REST helpers
+│   │   ├── features/
+│   │   │   ├── auth/         # Auth context, login page, hooks
+│   │   │   ├── dashboard/    # Layout, dashboards, domain hooks
+│   │   │   └── navigation/   # Role switcher UI
+│   │   └── main.jsx          # entry point
 │   ├── tests/                # Playwright E2E specs
 │   ├── coverage/             # Vitest & Playwright output
 │   ├── vite.config.js        # Vite + Vitest settings
@@ -186,6 +194,7 @@ Mock SSO login tips:
 - Email & display name are required.
 - Check "Sign in with manager role" to unlock manager UI. Provide managed venue IDs (comma-separated UUIDs) to grant venue access (sample IDs seeded via Flyway).
 - Admin role exposes aggregated venue metrics.
+- After a successful login you are redirected to `/`; the role switcher navigates between `/` (attendee), `/manager`, and `/admin`.
 
 ---
 
@@ -198,6 +207,7 @@ Mock SSO login tips:
 | Frontend unit/component tests | `npm run test` | Fast dev run (no coverage by default) |
 | Frontend coverage | `npm run test:coverage` | HTML/LCOV under `frontend/coverage/` |
 | End-to-end tests (Playwright) | See [End-to-End Testing](#end-to-end-testing) | HTML report under `frontend/coverage/playwright-report/` |
+| Frontend lint | `npm run lint` | ESLint (React, hooks, refresh) |
 
 ---
 

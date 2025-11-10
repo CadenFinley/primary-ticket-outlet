@@ -19,3 +19,20 @@ docker compose down
 ```
 Use `docker compose down -v` to wipe the database volume.  
 In Docker Desktop: Containers tab → select project → Stop (or Delete) buttons.
+
+## 4. Run Tests (inside containers)
+Start the stack first (`docker compose up -d --build`), then:
+
+```bash
+# Backend unit + coverage
+docker compose exec backend ./gradlew test
+
+# Frontend unit tests
+docker compose exec nginx npm run test
+
+# Frontend coverage
+docker compose exec nginx npm run test:coverage
+
+# Playwright E2E (frontend + backend must be running)
+docker compose exec nginx npm run test:e2e
+```
