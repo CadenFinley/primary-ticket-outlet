@@ -21,7 +21,7 @@ Use `docker compose down -v` to wipe the database volume.
 In Docker Desktop: Containers tab → select project → Stop (or Delete) buttons.
 
 ## 4. Run Tests (inside containers)
-Start the stack first (`docker compose up -d --build`), then:
+Start the stack first (`docker compose up --build`), then:
 
 ```bash
 # Backend unit + coverage
