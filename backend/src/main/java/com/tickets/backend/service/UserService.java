@@ -117,6 +117,15 @@ public class UserService {
         }
     }
 
+    @Transactional
+    public User updateContactInfo(UUID userId, String address, String phoneNumber) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setAddress(address);
+        user.setPhoneNumber(phoneNumber);
+        return userRepository.save(user);
+    }
+
     private User createUser(String email, String displayName) {
         User user = User.builder()
             .id(UUID.randomUUID())

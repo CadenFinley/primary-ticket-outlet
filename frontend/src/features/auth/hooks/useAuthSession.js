@@ -63,6 +63,8 @@ export function useAuthSession() {
         id: authResponse.userId,
         email: authResponse.email,
         displayName: authResponse.displayName,
+        address: authResponse.address ?? null,
+        phoneNumber: authResponse.phoneNumber ?? null,
         roles: authResponse.roles ?? [],
         managedVenues: [],
       },

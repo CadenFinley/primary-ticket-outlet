@@ -1,0 +1,5 @@
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS address TEXT;
+
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS phone_number VARCHAR(64);

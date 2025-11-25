@@ -58,6 +58,8 @@ class AuthControllerTest {
             .id(UUID.randomUUID())
             .email("user@example.com")
             .displayName("User")
+            .address("123 Main St")
+            .phoneNumber("555-1111")
             .build();
         when(userService.findOrCreateUser("user@example.com", "User")).thenReturn(user);
         when(userService.getRoleNames(user)).thenReturn(List.of("ROLE_USER"));
@@ -70,6 +72,7 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.email", is("user@example.com")))
+            .andExpect(jsonPath("$.address", is("123 Main St")))
             .andExpect(jsonPath("$.token", is("token")));
 
         verify(userService).ensureRoles(user, List.of("ROLE_USER"));

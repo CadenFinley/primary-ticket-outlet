@@ -40,7 +40,7 @@ export function useManagerVenues(token, managedVenues) {
   }, [load]);
 
   const generateTickets = useCallback(
-    async (eventId, venueId, quantity) => {
+    async (eventId, quantity) => {
       try {
         await apiRequest(
           `/events/${eventId}/tickets:generate`,

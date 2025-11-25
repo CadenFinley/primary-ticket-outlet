@@ -10,7 +10,7 @@ This guide explains how managers create new events and why certain patterns were
    - On submit it calls `apiRequest('/venues/{venueId}/events', { method: 'POST', data: {...}})`.
    - After success we call `refresh()` from the hook to reload the event list and display a success message.
 4. **Generating tickets**:
-   - Prompt via `window.prompt`, then call `generateTickets(eventId, venueId, quantity)`, which posts to `/events/{eventId}/tickets:generate` and refreshes data.
+   - Each event card includes an inline quantity input; clicking **Generate Tickets** calls `generateTickets(eventId, quantity)` which posts to `/events/{eventId}/tickets:generate` and refreshes data.
 5. **Downloading purchasers**: `downloadPurchasers(eventId)` invokes `downloadCsv('/events/{eventId}/purchasers')`, generating a CSV download.
 
 ## Backend flow

@@ -118,6 +118,8 @@ public class EventController {
             .map(purchase -> new PurchaserResponse(
                 purchase.getUser().getEmail(),
                 purchase.getUser().getDisplayName(),
+                purchase.getUser().getAddress(),
+                purchase.getUser().getPhoneNumber(),
                 purchase.getQuantity(),
                 purchase.getTotalAmountCents(),
                 purchase.getCreatedAt().toString()
@@ -131,10 +133,12 @@ public class EventController {
     public ResponseEntity<String> getPurchasersCsv(@PathVariable UUID eventId) {
         User actor = currentUserService.requireCurrentUser();
         ensureManagerAccess(actor, eventService.getById(eventId).getVenue().getId());
-        StringBuilder csv = new StringBuilder("email,display_name,quantity,total_amount_cents,purchased_at\n");
+        StringBuilder csv = new StringBuilder("email,display_name,address,phone_number,quantity,total_amount_cents,purchased_at\n");
         purchaseRepository.findAllByEventIdWithUser(eventId).forEach(purchase -> csv
             .append(purchase.getUser().getEmail()).append(',')
             .append(escapeCsv(purchase.getUser().getDisplayName())).append(',')
+            .append(escapeCsv(purchase.getUser().getAddress())).append(',')
+            .append(escapeCsv(purchase.getUser().getPhoneNumber())).append(',')
             .append(purchase.getQuantity()).append(',')
             .append(purchase.getTotalAmountCents()).append(',')
             .append(purchase.getCreatedAt()).append('\n'));

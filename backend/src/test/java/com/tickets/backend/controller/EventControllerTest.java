@@ -205,6 +205,8 @@ class EventControllerTest {
             .email(manager.getEmail())
             .displayName(null)
             .userRoles(manager.getUserRoles())
+            .address("10 Manager Way")
+            .phoneNumber("555-9090")
             .build();
 
         when(purchaseRepository.findAllByEventIdWithUser(event.getId())).thenReturn(List.of(
@@ -222,20 +224,28 @@ class EventControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(1)))
-            .andExpect(jsonPath("$[0].email", is(manager.getEmail())));
+            .andExpect(jsonPath("$[0].email", is(manager.getEmail())))
+            .andExpect(jsonPath("$[0].address", is("10 Manager Way")))
+            .andExpect(jsonPath("$[0].phoneNumber", is("555-9090")));
     }
 
     @Test
     void purchasersCsvReturnsAttachment() throws Exception {
         User admin = userWithRole("ROLE_ADMIN");
         admin.setDisplayName("Admin, \"Jazz\"");
+        admin.setAddress("123 Winner Rd");
+        admin.setPhoneNumber("555-0100");
         when(currentUserService.requireCurrentUser()).thenReturn(admin);
         when(eventService.getById(event.getId())).thenReturn(event);
         User nullNameUser = userWithRole("ROLE_MANAGER");
         nullNameUser.setDisplayName(null);
+        nullNameUser.setAddress(null);
+        nullNameUser.setPhoneNumber(null);
 
         User plainUser = userWithRole("ROLE_USER");
         plainUser.setDisplayName("Plain");
+        plainUser.setAddress("456 Plain St");
+        plainUser.setPhoneNumber("555-0200");
 
         when(purchaseRepository.findAllByEventIdWithUser(event.getId())).thenReturn(List.of(
             Purchase.builder()
@@ -271,10 +281,10 @@ class EventControllerTest {
 
         String csv = result.getResponse().getContentAsString();
         assertThat(csv)
-            .contains("email,display_name")
-            .contains(",\"Admin, \"\"Jazz\"\"\",")
-            .contains("role_manager@example.com,,1,3500")
-            .contains("role_user@example.com,Plain,1,3500");
+            .contains("email,display_name,address,phone_number,quantity,total_amount_cents,purchased_at")
+            .contains("role_admin@example.com,\"Admin, \"\"Jazz\"\"\",123 Winner Rd,555-0100,1,3500")
+            .contains("role_manager@example.com,,,,1,3500")
+            .contains("role_user@example.com,Plain,456 Plain St,555-0200,1,3500");
     }
 
     @Test

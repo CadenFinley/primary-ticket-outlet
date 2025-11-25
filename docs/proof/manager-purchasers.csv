@@ -1,0 +1,2 @@
+email,display_name,address,phone_number,quantity,total_amount_cents,purchased_at
+customer.artifacts@example.com,Artifacts Customer,"123 Artifact Way, Test City",+1-555-0100,2,17000,2025-11-25T20:35:01.994308Z

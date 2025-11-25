@@ -10,6 +10,7 @@ import {
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import { RoleSwitcher } from '../../navigation';
+import ContactInfoCard from './ContactInfoCard';
 
 const ROLE_TO_PATH = {
   ROLE_USER: '/',
@@ -22,7 +23,7 @@ const PATH_TO_ROLE = Object.fromEntries(
 );
 
 export default function DashboardLayout() {
-  const { token, user, roles, logout } = useAuth();
+  const { token, user, roles, logout, setUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -64,6 +65,9 @@ export default function DashboardLayout() {
       </AppBar>
       <Container sx={{ py: 4 }}>
         <Stack spacing={4}>
+          {user && (
+            <ContactInfoCard token={token} user={user} onUpdated={setUser} />
+          )}
           <RoleSwitcher
             roles={availableRoles}
             activeRole={currentRole}
